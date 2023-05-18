@@ -1,8 +1,3 @@
-#for next week undo all of the matrix related stuff
-#make a list for the blocks to inhabit
-#make the blocks look at their destination to see if it is occupied
-#do the same for the food, except the food must check until it finds a safe landing spot
-
 #Import statements
 import turtle
 from time import sleep
