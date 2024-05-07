@@ -1,6 +1,7 @@
 import turtle
 import deckocards
 from time import sleep
+from random import choice, randint
 
 #to do list
 #get card special rules to work
@@ -12,6 +13,7 @@ from time import sleep
 w = turtle.Screen()
 w.tracer(0)
 w.register_shape("unocard.gif")
+colors = ["Red","Green","Blue","Yellow"]
 
 #pen init
 pen = turtle.Turtle()
@@ -83,17 +85,40 @@ def clicky(x,y):
         aiturn()
         w.onclick(clicky)
         return
-    #play a card        
+    #play a card       
     for i in range(len(cards)-1,-1,-1):
         if abs(cards[i].card.xcor()-x) < 50 and abs(cards[i].card.ycor()-y) < 75 and (cards[i].value == discard[-1].value or cards[i].color == discard[-1].color or cards[i].color == 'purple' or discard[-1].color == 'purple'):
             cards[i].card.clear()
             d.discard.append(d.hand.pop(i))
             discard.append(cards.pop(i))
-            if len(discard) == 1:
-                discard[0].paintcard(200,0)
-            elif len(discard) > 1:
-                discard[-2].card.clear()
+            discard[-2].card.clear()
+            discard[-1].paintcard(200,0)
+            if discard[-1].color == "purple":
+                sleep(0.25)
+                discard[-1].color = choice(colors)  
                 discard[-1].paintcard(200,0)
+            #check for special rules
+            if discard[-1].value == "+2":
+                ai_draw(2)
+                w.onclick(clicky)
+                return
+            elif discard[-1].value == "+4":
+                ai_draw(4)
+                w.onclick(clicky)
+                return
+            elif discard[-1].value == "(x)":
+                w.onclick(clicky)
+                return
+            elif discard[-1].value == "<--":
+                randomnumber = randint(0, len(d.hand)-1)
+                d.aihand.append(d.hand.pop(randomnumber))
+                clear_cards()
+                aicards.append(cards.pop(randomnumber))
+                player_draw(0)
+                ai_draw(0)
+            for i in range(len(d.hand)):
+                cards[i].card.clear()
+                cards[i].paintcard(-320+735*i/len(d.hand),-200)
             aiturn()
             break
     w.onclick(clicky)
@@ -112,14 +137,32 @@ def aiturn():
         #player wins
     sleep(1)
     play = False
+    skip = False
     for i in range(len(aicards)):
         if aicards[i].value == discard[-1].value or aicards[i].color == discard[-1].color or aicards[i].color == "purple" or discard[-1].color == "purple":
             aicards[i].card.shape("arrow")
             aicards[i].card.hideturtle()
             d.discard.append(d.aihand.pop(i))
             discard.append(aicards.pop(i))
+            if discard[-1].color == "purple":
+                discard[-1].color = choice(colors)
             discard[-2].card.clear()
             discard[-1].paintcard(200,0)
+            if discard[-1].value == "+2":
+                player_draw(2)
+            elif discard[-1].value == "+4":
+                player_draw(4)
+            elif discard[-1].value == "(x)":
+                skip = True
+            elif discard[-1].value == "<--":
+                randomnumber = randint(0, len(d.aihand)-1)
+                clear_cards()
+                aicards[randomnumber].card.shape("arrow")
+                aicards[randomnumber].card.hideturtle()
+                d.hand.append(d.aihand.pop(randomnumber))
+                cards.append(aicards.pop(randomnumber))
+                player_draw(0)
+                ai_draw(0)
             play = True
             break
     if not play:
@@ -139,6 +182,8 @@ def aiturn():
         sleep(3)
         quit()
         #player loses
+    if skip:
+        aiturn()
     return
 #######################
 
@@ -163,6 +208,7 @@ class card:
         self.move(x,y)
         self.move(self.card.xcor()-50,self.card.ycor())
         self.card.left(90)
+        self.card.fillcolor(self.color)
         self.card.begin_fill()
         self.card.forward(75)
         self.card.right(90)
@@ -200,6 +246,8 @@ def player_draw(n):
     for i in range(len(d.hand)):
         cards[i].card.clear() #don't need at beginning. will need if make state machine.
         cards[i].paintcard(-320+735*i/len(d.hand),-200)
+        w.update()
+        sleep(0.05)
     return
 
 def ai_draw(n):
@@ -212,6 +260,13 @@ def ai_draw(n):
         aicards[i].card.showturtle()
         aicards[i].card.penup()
         aicards[i].card.goto(-320+735*i/len(d.aihand),200)
+        w.update()
+        sleep(0.1)
+    return
+
+def clear_cards():
+    for i in range(len(d.hand)):
+        cards[i].card.clear()
     return
 ###########################
     
